@@ -4,8 +4,6 @@ import https from 'https';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import crypto from 'crypto'; // Import crypto to access SSL constants
 
-dns.setDefaultResultOrder('ipv4first');
-
 const customFetch = async (url, options = {}) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
