@@ -1,0 +1,19 @@
+{
+  "name": "cozybot",
+  "version": "1.0.0",
+  "description": "Discord bot",
+  "main": "server.js",
+  "scripts": {
+    "test": "start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KevinSebaLee/CozyBot.git"
+  },
+  "author": "Pocketiny, Cess",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KevinSebaLee/CozyBot/issues"
+  },
+  "homepage": "https://github.com/KevinSebaLee/CozyBot#readme"
+}
