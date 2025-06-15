@@ -13,6 +13,9 @@ const client = new Client({
   ]
 });
 
+const BASE_EXP = 50;
+const GROWTH_RATE = 1.2;
+
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
@@ -83,8 +86,20 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  if(message.content != null){
+  // Cooldown map to track last XP gain per user
+  if (!global.xpCooldowns) global.xpCooldowns = new Map();
+
+  if (message.content != null) {
     const userId = message.author.id;
+    const now = Date.now();
+    const lastXP = global.xpCooldowns.get(userId) || 0;
+
+    if (now - lastXP < 60000) {
+      return;
+    }
+
+    global.xpCooldowns.set(userId, now);
+
     const guildId = message.guild.id;
     const xpToAdd = Math.floor(Math.random() * 10) + 5; // Random XP between 5 and 14
 
@@ -101,14 +116,13 @@ client.on('messageCreate', async (message) => {
     if (!error && userXP) {
         newXP = userXP.global_xp + xpToAdd;
         newLevel = userXP.global_level;
-        const xpNeeded = newLevel * 100;
-        let xpToAddAfter = userXP.global_xp - xpNeeded;        
 
-        console.log(`User ${userId} has ${userXP.global_xp} XP , adding ${xpToAdd} XP, new total is ${newXP}. Need xp to level up: ${xpNeeded}. XP after adding: ${xpToAddAfter}`);
+        const xpNeeded = BASE_EXP * ((Math.pow(GROWTH_RATE, newLevel) - 1) / (GROWTH_RATE - 1));
 
-        if (xpToAddAfter >= xpNeeded) {
+        console.log(`User ${userId} has ${userXP.global_xp} XP , adding ${xpToAdd} XP, new total is ${newXP}. Need xp to level up: ${xpNeeded}.`);
+
+        if (newXP >= xpNeeded) {
             newLevel += 1;
-            newXP = newXP - xpNeeded;
             message.reply(`Congrats ${message.author}, you leveled up to level ${newLevel}!`);
         }
         await supabase
@@ -118,7 +132,7 @@ client.on('messageCreate', async (message) => {
     } else {
         await supabase
             .from('users')
-            .insert([{ id: userId, global_xp: newXP, blobal_level: newLevel }]);
+            .insert([{ id: userId, global_xp: newXP, global_level: newLevel }]);
     }
   }
 
