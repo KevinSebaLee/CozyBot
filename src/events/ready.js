@@ -28,8 +28,25 @@ export default function (client) {
 
       for (const [memberId, member] of guild.members.cache) {
         const { user } = member;
+        
+        // Upsert user_guild relationship
+        await supabase
+          .from('user_guild')
+          .upsert([
+            {
+              user_id: user.id,
+              username: user.username,
+              servername: guild.name,
+              xp: user.global_xp,
+              level: user.global_level,
+              guild_id: guildId
+            }
+          ]);
 
         // Upsert user
+        // Skip bots
+        if (user.bot) continue;
+
         await supabase
           .from('users')
           .upsert([
@@ -38,18 +55,6 @@ export default function (client) {
               username: user.username,
               discriminator: user.discriminator,
               avatar: user.avatar,
-            }
-          ]);
-
-        // Upsert user_guild relationship
-        await supabase
-          .from('user_guild')
-          .upsert([
-            {
-              user_id: user.id,
-              xp: user.global_xp,
-              level: user.global_level,
-              guild_id: guildId
             }
           ]);
       }
