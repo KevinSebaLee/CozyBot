@@ -6,9 +6,5 @@ export default function (client) {
     handleXPMessage(message); // Handle XP for all messages
 
     if (message.author.bot) return;
-    if (message.content.trim().toLowerCase() === 'xp' || message.content.trim().toLowerCase() === '!xp') {
-      await messageXp(message); // Only messages
-      return;
-    }
   });
 }

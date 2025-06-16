@@ -2,6 +2,7 @@ import supabase from '../database/supabaseClient.js';
 import xpCommand from '../commands/xp.js';
 import resetCommand from '../commands/reset.js';
 import leaderboardCommand from '../commands/leaderboard.js';
+import ball8Command from '../commands/8ball.js';
 
 export default function (client) {
   client.once('ready', async () => {
@@ -43,8 +44,6 @@ export default function (client) {
             }
           ]);
 
-        // Upsert user
-        // Skip bots
         if (user.bot) continue;
 
         await supabase
@@ -65,6 +64,7 @@ export default function (client) {
       xpCommand.data,
       resetCommand.data,
       leaderboardCommand.data,
+      ball8Command.data
     ].filter(Boolean);
 
     for (const guild of client.guilds.cache.values()) {
