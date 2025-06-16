@@ -1,14 +1,29 @@
+import { SlashCommandBuilder } from 'discord.js';
 import supabase from '../database/supabaseClient.js';
 import { createXPWidget } from '../utils/xpUtils.js';
 
+// Define the slash command data
+const data = new SlashCommandBuilder()
+  .setName('xp')
+  .setDescription('Show your XP and level')
+  .addUserOption(option =>
+    option.setName('user')
+      .setDescription('The user to check XP for')
+      .setRequired(false)
+  );
+
 // Only use this for slash command interactions!
 const xpCommand = async (interaction) => {
+  const user = interaction.options.getUser('user') || interaction.user;
+  const userId = user.id;
+
+  console.log(`xpCommand called by user: ${user.tag} (${userId})`);
+
   if (!interaction || typeof interaction.reply !== 'function') {
     console.error('xpCommand called with non-Interaction:', interaction);
     return;
   }
 
-  const userId = interaction.user.id;
   const { data: userXP, error } = await supabase
     .from('users')
     .select('global_xp, global_level')
@@ -26,7 +41,7 @@ const xpCommand = async (interaction) => {
   }
 
   try {
-    const attachment = await createXPWidget(interaction.user, userXP);
+    const attachment = await createXPWidget(user, userXP);
     await interaction.reply({ files: [attachment] });
   } catch (err) {
     if (!interaction.replied && !interaction.deferred) {
@@ -38,5 +53,7 @@ const xpCommand = async (interaction) => {
     }
   }
 };
+
+xpCommand.data = data;
 
 export default xpCommand;

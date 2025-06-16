@@ -63,15 +63,56 @@ export async function createXPWidget(user, userXP) {
   ctx.fillStyle = '#b9bbbe';
   ctx.fillText(`Level: ${userXP.global_level}`, avatarSize + padding * 2, 80);
 
-  // XP Bar
-  const barX = avatarSize + padding * 2, barY = 100, barWidth = 340, barHeight = 28;
+  // XP Bar (rounded)
+  const barX = avatarSize + padding * 2, barY = 100, barWidth = 340, barHeight = 28, radius = barHeight / 2;
   const xpNeeded = BASE_EXP * ((Math.pow(GROWTH_RATE, userXP.global_level) - 1) / (GROWTH_RATE - 1));
   const percent = Math.min(userXP.global_xp / xpNeeded, 1);
 
+  // Draw background bar (rounded)
   ctx.fillStyle = '#40444b';
-  ctx.fillRect(barX, barY, barWidth, barHeight);
-  ctx.fillStyle = '#00b0f4';
-  ctx.fillRect(barX, barY, barWidth * percent, barHeight);
+  ctx.beginPath();
+  ctx.moveTo(barX + radius, barY);
+  ctx.lineTo(barX + barWidth - radius, barY);
+  ctx.arcTo(barX + barWidth, barY, barX + barWidth, barY + radius, radius);
+  ctx.lineTo(barX + barWidth, barY + barHeight - radius);
+  ctx.arcTo(barX + barWidth, barY + barHeight, barX + barWidth - radius, barY + barHeight, radius);
+  ctx.lineTo(barX + radius, barY + barHeight);
+  ctx.arcTo(barX, barY + barHeight, barX, barY + barHeight - radius, radius);
+  ctx.lineTo(barX, barY + radius);
+  ctx.arcTo(barX, barY, barX + radius, barY, radius);
+  ctx.closePath();
+  ctx.fill();
+
+  // Draw filled bar (rounded, only if percent > 0)
+  if (percent > 0) {
+    const filledWidth = barWidth * percent;
+    ctx.fillStyle = '#00b0f4';
+    ctx.beginPath();
+    ctx.moveTo(barX + radius, barY);
+    if (filledWidth < barWidth) {
+      ctx.lineTo(barX + filledWidth - radius, barY);
+      ctx.arcTo(barX + filledWidth, barY, barX + filledWidth, barY + radius, radius);
+      ctx.lineTo(barX + filledWidth, barY + barHeight - radius);
+      ctx.arcTo(barX + filledWidth, barY + barHeight, barX + filledWidth - radius, barY + barHeight, radius);
+      ctx.lineTo(barX + radius, barY + barHeight);
+      ctx.arcTo(barX, barY + barHeight, barX, barY + barHeight - radius, radius);
+      ctx.lineTo(barX, barY + radius);
+      ctx.arcTo(barX, barY, barX + radius, barY, radius);
+    } else {
+      // Full bar, draw full rounded rect
+      ctx.lineTo(barX + barWidth - radius, barY);
+      ctx.arcTo(barX + barWidth, barY, barX + barWidth, barY + radius, radius);
+      ctx.lineTo(barX + barWidth, barY + barHeight - radius);
+      ctx.arcTo(barX + barWidth, barY + barHeight, barX + barWidth - radius, barY + barHeight, radius);
+      ctx.lineTo(barX + radius, barY + barHeight);
+      ctx.arcTo(barX, barY + barHeight, barX, barY + barHeight - radius, radius);
+      ctx.lineTo(barX, barY + radius);
+      ctx.arcTo(barX, barY, barX + radius, barY, radius);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
   ctx.font = '18px Sans-serif';
   ctx.fillStyle = '#ffffff';
   ctx.textAlign = 'center';

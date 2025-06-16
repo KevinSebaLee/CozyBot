@@ -1,4 +1,7 @@
 import supabase from '../database/supabaseClient.js';
+import xpCommand from '../commands/xp.js';
+import resetCommand from '../commands/reset.js';
+import leaderboardCommand from '../commands/leaderboard.js';
 
 export default function (client) {
   client.once('ready', async () => {
@@ -40,14 +43,15 @@ export default function (client) {
       }
     }
 
-    const data = [
-      {
-        name: 'xp',
-        description: "Show your XP and level"
-      }
-    ];
+    // Register all slash commands
+    const commands = [
+      xpCommand.data,
+      resetCommand.data,
+      leaderboardCommand.data,
+    ].filter(Boolean);
+
     for (const guild of client.guilds.cache.values()) {
-      await guild.commands.set(data);
+      await guild.commands.set(commands);
     }
   });
 }
