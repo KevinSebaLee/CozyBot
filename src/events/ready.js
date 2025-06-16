@@ -40,6 +40,18 @@ export default function (client) {
               avatar: user.avatar,
             }
           ]);
+
+        // Upsert user_guild relationship
+        await supabase
+          .from('user_guild')
+          .upsert([
+            {
+              user_id: user.id,
+              xp: user.global_xp,
+              level: user.global_level,
+              guild_id: guildId
+            }
+          ]);
       }
     }
 
