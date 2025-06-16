@@ -3,7 +3,7 @@ import { handleXPMessage } from '../utils/xpUtils.js';
 
 export default function (client) {
   client.on('messageCreate', async (message) => {
-    handleXPMessage(message); // Handle XP for all messages
+    // handleXPMessage(message);
 
     if (message.author.bot) return;
   });

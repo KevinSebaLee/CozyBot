@@ -3,10 +3,10 @@ import supabase from '../database/supabaseClient.js';
 
 const data = new SlashCommandBuilder()
   .setName('resetlevel')
-  .setDescription('Reset a user\'s level to 0')
+  .setDescription('Reinicia el nivel de un usuario a 0')
   .addUserOption(option =>
     option.setName('target')
-      .setDescription('The user to reset')
+      .setDescription('El nombre del usuario cuyo nivel se reiniciará')
       .setRequired(true)
   );
 
@@ -19,7 +19,7 @@ const resetLevelCommand = async (interaction) => {
     .eq('id', target.id);
 
   await interaction.reply({
-    content: `Level for ${target.tag} has been reset to 0.`,
+    content: `Nivel para ${target.tag} se reinicio a 0.`,
     ephemeral: true
   });
 };

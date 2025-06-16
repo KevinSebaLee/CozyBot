@@ -7,7 +7,7 @@ export default function (client) {
   client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
 
-    if (interaction.commandName === 'xp') {
+    if (interaction.commandName === 'experience') {
       await xpCommand(interaction);
     }
 

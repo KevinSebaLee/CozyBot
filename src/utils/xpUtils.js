@@ -47,6 +47,9 @@ export async function createXPWidget(user, userXP) {
   // Avatar
   const avatarURL = user.displayAvatarURL({ extension: 'png', size: 256 });
   const avatarImg = await loadImage(avatarURL);
+
+  console.log(avatarURL, Buffer.isBuffer(avatarImg));
+
   ctx.save();
   ctx.beginPath();
   ctx.arc(padding + avatarSize / 2, canvasHeight / 2, avatarSize / 2, 0, Math.PI * 2, true);
@@ -61,7 +64,7 @@ export async function createXPWidget(user, userXP) {
   ctx.fillText(user.username, avatarSize + padding * 2, 50);
   ctx.font = '20px Sans-serif';
   ctx.fillStyle = '#b9bbbe';
-  ctx.fillText(`Level: ${userXP.global_level}`, avatarSize + padding * 2, 80);
+  ctx.fillText(`Nivel: ${userXP.global_level}`, avatarSize + padding * 2, 80);
 
   // XP Bar (rounded)
   const barX = avatarSize + padding * 2, barY = 100, barWidth = 340, barHeight = 28, radius = barHeight / 2;

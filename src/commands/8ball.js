@@ -2,29 +2,29 @@ import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 
 const data = new SlashCommandBuilder()
   .setName("8ball")
-  .setDescription("Ask the magic 8-ball a question.")
+  .setDescription("Pregunta a la bola 8 mágica")
   .addStringOption((option) =>
     option
       .setName("question")
-      .setDescription("The question to ask the magic 8-ball")
+      .setDescription("La pregunta que quieres hacer a la bola 8 mágica")
       .setRequired(true)
   );
 
 const ball8Command = async (interaction) => {
   const question = interaction.options.getString("question");
 
-  const responses = [
-    "Yes",
+const responses = [
+    "Sí",
     "No",
-    "Maybe",
-    "Ask again later",
-    "Definitely",
-    "Absolutely not",
-    "It is certain",
-    "Very doubtful",
-    "Without a doubt",
-    "My sources say no"
-  ];
+    "Quizás",
+    "Pregunta de nuevo más tarde",
+    "Definitivamente",
+    "Absolutamente no",
+    "Es seguro",
+    "Muy dudoso",
+    "Sin duda",
+    "Mis fuentes dicen que no"
+];
 
   const randomResponse = responses[Math.floor(Math.random() * responses.length)];
 
@@ -32,7 +32,7 @@ await interaction.reply({
     embeds: [
         new EmbedBuilder()
             .setTitle("🎱 Magic 8-Ball")
-            .setDescription(`**Question:** ${question}\n**Answer:** ${randomResponse}`)
+            .setDescription(`**Pregunta:** ${question}\n**Respuesta:** ${randomResponse}`)
             .setColor(0x1abc9c)
     ]
 });
