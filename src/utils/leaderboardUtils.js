@@ -59,21 +59,31 @@ export async function drawLeaderboard(users) {
         const xpBarY = centerY - xpBarHeight / 2;
         const xpBarWidth = width - textX - numberWidth - padding - gap;
 
-        // Draw name (above XP bar)
+        // Draw name (above XP bar, left aligned)
         ctx.font = '20px Sans-serif';
         ctx.fillStyle = '#FFFFFF';
         ctx.textBaseline = 'bottom';
         ctx.textAlign = 'left';
         ctx.fillText(user.name, textX, xpBarY - 4);
 
-        // Draw level (right next to name)
+        // Draw level (in a separate box to the right of the name)
         ctx.font = 'bold 16px Sans-serif';
-        ctx.fillStyle = '#7289DA';
         ctx.textBaseline = 'bottom';
         ctx.textAlign = 'left';
-        const levelText = `Lv ${level}`;
         const nameWidth = ctx.measureText(user.name).width;
-        ctx.fillText(levelText, textX + nameWidth + 12, xpBarY - 4);
+        const levelBoxX = textX + nameWidth + 18;
+        const levelBoxY = xpBarY - 24;
+        const levelBoxW = 48;
+        const levelBoxH = 26;
+
+        // Draw level text inside the box
+        ctx.save();
+        ctx.font = 'bold 15px Sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`Lv ${level}`, levelBoxX + levelBoxW / 2, levelBoxY + levelBoxH / 2);
+        ctx.restore();
 
         // Draw XP bar background (rounded)
         ctx.save();
@@ -93,7 +103,7 @@ export async function drawLeaderboard(users) {
             roundRectLeft(ctx, xpBarX, xpBarY, xpBarWidth * xpPercent, xpBarHeight, xpBarRadius);
         }
         ctx.clip();
-        ctx.fillStyle = '#7289DA';
+        ctx.fillStyle = '#6ab0ff';
         ctx.fillRect(xpBarX, xpBarY, xpBarWidth * xpPercent, xpBarHeight);
         ctx.restore();
 
@@ -106,10 +116,6 @@ export async function drawLeaderboard(users) {
         const textYInside = xpBarY + xpBarHeight / 2;
 
         ctx.save();
-        ctx.fillStyle = 'rgba(0,0,0,0)';
-        ctx.restore();
-
-        ctx.save();
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText(xpText, textXInside, textYInside);
         ctx.restore();
@@ -117,7 +123,7 @@ export async function drawLeaderboard(users) {
         // Draw position number (right, big)
         ctx.save();
         ctx.font = 'bold 38px Sans-serif';
-        ctx.fillStyle = '#7289DA';
+        ctx.fillStyle = '#9c9c9c';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const numberX = width - numberWidth / 2 - padding;
