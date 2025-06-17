@@ -3,6 +3,7 @@ import xpCommand from '../commands/xp.js';
 import resetCommand from '../commands/reset.js';
 import leaderboardCommand from '../commands/leaderboard.js';
 import ball8Command from '../commands/8ball.js';
+import setXpCommand from '../commands/setXP.js';
 
 export default function (client) {
   client.once('ready', async () => {
@@ -64,7 +65,8 @@ export default function (client) {
       xpCommand.data,
       resetCommand.data,
       leaderboardCommand.data,
-      ball8Command.data
+      ball8Command.data,
+      setXpCommand.data
     ].filter(Boolean);
 
     for (const guild of client.guilds.cache.values()) {

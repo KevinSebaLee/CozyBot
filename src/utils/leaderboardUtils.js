@@ -11,6 +11,8 @@ export async function drawLeaderboard(users) {
     const xpBarHeight = 18;
     const xpBarRadius = xpBarHeight / 2;
     const levelBoxSize = avatarSize;
+    const GROWTH_RATE = 1.025; // Growth rate for XP needed per level
+    const BASE_EXP = 50; // Base XP needed for level 1
 
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
@@ -51,7 +53,7 @@ export async function drawLeaderboard(users) {
         // Calculate XP percent for the bar
         const level = user.global_level ?? user.level ?? 1;
         const xp = user.global_xp ?? user.xp ?? 0;
-        const xpNeeded = 50 * ((Math.pow(1.2, level) - 1) / (1.2 - 1));
+        const xpNeeded = BASE_EXP * ((Math.pow(GROWTH_RATE, level) - 1) / (GROWTH_RATE - 1));
         const xpPercent = Math.max(0, Math.min(1, xp / xpNeeded));
 
         // XP bar should occupy the whole image, except for avatar and number box
@@ -123,11 +125,23 @@ export async function drawLeaderboard(users) {
         // Draw position number (right, big)
         ctx.save();
         ctx.font = 'bold 38px Sans-serif';
-        ctx.fillStyle = '#9c9c9c';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const numberX = width - numberWidth / 2 - padding;
         const numberY = y + avatarSize / 2;
+
+        if(i+1 === 1){
+            ctx.fillStyle = '#efb810';
+        }
+        else if(i+1 === 2){
+            ctx.fillStyle = '#cdcdcd';
+        }
+        else if(i+1 === 3){
+            ctx.fillStyle = '#bf8970';
+        }
+        else{
+            ctx.fillStyle = '#9c9c9c';
+        }
         ctx.fillText(`#${i + 1}`, numberX, numberY);
         ctx.restore();
     }

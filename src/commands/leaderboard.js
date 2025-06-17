@@ -20,7 +20,7 @@ const leaderboardCommand = async (interaction) => {
   const { data: leaderboard, error } = await supabase
     .from('user_guild')
     .select('users(id, username, avatar, global_xp, global_level)')
-    .order('users(global_xp)', { ascending: false })
+    .order('users(global_level)', { ascending: false })
     .eq('guild_id', interaction.guildId)
     .limit(10);
 

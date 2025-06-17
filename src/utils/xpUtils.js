@@ -2,7 +2,7 @@ import supabase from '../database/supabaseClient.js';
 import { AttachmentBuilder } from 'discord.js';
 
 export const BASE_EXP = 50;
-export const GROWTH_RATE = 1.2;
+export const GROWTH_RATE = 1.025;
 
 export async function handleXPMessage(message) {
   if (!global.xpCooldowns) global.xpCooldowns = new Map();
@@ -23,8 +23,10 @@ export async function handleXPMessage(message) {
 
   let newXP = xpToAdd, newLevel = 1;
   if (!error && userXP) {
-    newXP = userXP.global_xp + xpToAdd;
     newLevel = userXP.global_level;
+    // Lower growth rate so level 50 needs about 5k XP
+    // Solve for GROWTH_RATE: xpNeeded = BASE_EXP * ((GROWTH_RATE^50 - 1) / (GROWTH_RATE - 1)) ≈ 5000
+    // With BASE_EXP = 50, GROWTH_RATE ≈ 1.055
     const xpNeeded = BASE_EXP * ((Math.pow(GROWTH_RATE, newLevel) - 1) / (GROWTH_RATE - 1));
     if (newXP >= xpNeeded) {
       newLevel += 1;
