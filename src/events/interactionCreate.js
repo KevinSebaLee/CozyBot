@@ -3,12 +3,13 @@ import resetCommand from '../commands/reset.js';
 import leaderboardCommand from '../commands/leaderboard.js';
 import ball8Command from '../commands/8ball.js';
 import setXpCommand from '../commands/setXP.js';
+import shipCommand from '../commands/ship.js';
 
 export default function (client) {
   client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
 
-    if (interaction.commandName === 'experience') {
+    if (interaction.commandName === 'rank') {
       await xpCommand(interaction);
     }
 
@@ -26,6 +27,10 @@ export default function (client) {
 
     if(interaction.commandName === 'setxp'){
       await setXpCommand(interaction);
+    }
+
+    if(interaction.commandName === 'ship'){
+      await shipCommand(interaction);
     }
   });
 }

@@ -4,6 +4,7 @@ import resetCommand from '../commands/reset.js';
 import leaderboardCommand from '../commands/leaderboard.js';
 import ball8Command from '../commands/8ball.js';
 import setXpCommand from '../commands/setXP.js';
+import shipCommand from '../commands/ship.js';
 
 export default function (client) {
   client.once('ready', async () => {
@@ -66,11 +67,13 @@ export default function (client) {
       resetCommand.data,
       leaderboardCommand.data,
       ball8Command.data,
-      setXpCommand.data
+      setXpCommand.data,
+      shipCommand.data
     ].filter(Boolean);
 
     for (const guild of client.guilds.cache.values()) {
-      await guild.commands.set(commands);
+      await guild.commands.set([]);
+      await guild.commands.set(commands); 
     }
   });
 }

@@ -4,7 +4,7 @@ import { createXPWidget } from '../utils/xpUtils.js';
 
 // Define the slash command data
 const data = new SlashCommandBuilder()
-  .setName('experience')
+  .setName('rank')
   .setDescription('Mostrar tu XP y nivel')
   .addUserOption(option =>
     option.setName('user')
