@@ -42,10 +42,6 @@ export default function (client) {
         // Ensure userLocalLevel[x] exists before accessing
         const userLevelData = userLocalLevel && userLocalLevel[x] ? userLocalLevel[x].users : {};
 
-        console.log(`Processing user: (${userLevelData.username}) in guild: ${guild.name}`);
-        console.log(userLevelData.global_level);
-        console.log(userLevelData.global_xp);
-
         await supabase
           .from('user_guild')
           .upsert([
