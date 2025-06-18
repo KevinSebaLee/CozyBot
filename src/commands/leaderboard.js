@@ -39,25 +39,31 @@ const leaderboardCommand = async (interaction) => {
   }
 
   // Log all guild members (cache only)
-  console.log(interaction.guild.members.cache.map(member => `${member.user.tag} (${member.id})`));
+  // Fetch all guild members (forces API fetch, not just cache)
+  const allMembers = await interaction.guild.members.fetch();
+  console.log(allMembers.map(member => `${member.user.tag} (${member.id})`));
 
   // Prepare user data for leaderboard image
   const users = [];
   for (const entry of leaderboard) {
     const u = entry.users;
-    // Ensure userId is always a string
-    const userId = typeof u.id === 'string' ? u.id : String(u.id);
+
+    const userId = String(u.id); // Always use string for Discord IDs
     let member = null;
     let userObj = null;
 
-    try {
-      member = await interaction.guild.members.fetch(userId);
-      console.log(`Member found: ${member.user.tag} (${member.id})`);
-    } catch (err) {
-      console.log(`Member not found in guild for ID: ${userId}`);
-      member = null;
+    member = allMembers.get(userId);
+
+    if (member && member.user) {
+      console.log(member.user);
+    } else {
+      console.log(`No member.user for ID: ${userId}`);
     }
-    if (!member) {
+
+    if (member) {
+      console.log(`Member found: ${member.user.tag} (${member.id})`);
+    } else {
+      console.log(`Member not found in guild for ID: ${userId}`);
       try {
         userObj = await interaction.client.users.fetch(userId);
         if (userObj) {
@@ -68,6 +74,19 @@ const leaderboardCommand = async (interaction) => {
         userObj = null;
       }
     }
+
+    if (!member) {
+      console.log(`Member not found in cache for ID: ${userId}`);
+      try {
+        userObj = await interaction.client.users.fetch(userId);
+        if (userObj) {
+          console.log(`User  found globally: ${userObj.tag} (${userObj.id})`);
+        }
+      } catch (err) {
+        console.error(`Error fetching user globally for ID: ${userId}`, err);
+      }
+    }
+
     let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
     if (member && member.user) {
       avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 256 });
@@ -94,6 +113,7 @@ const leaderboardCommand = async (interaction) => {
     files: [attachment],
   });
 };
+
 
 leaderboardCommand.data = data;
 

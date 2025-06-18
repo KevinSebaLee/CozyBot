@@ -31,16 +31,20 @@ export default function (client) {
 
       const { data: userLocalLevel, error: err } = await supabase
           .from('user_guild')
-          .select('users(global_xp, global_level)')
+          .select('users(global_xp, global_level, username)')
           .eq('guild_id', guild.id)
 
-      for (const [memberId, member] of guild.members.cache) {
-        const { user } = member;
-        let x = 0;
 
-        console.log(`Processing user: ${user.username} (${user.id}) in guild: ${guild.name}`);
-        console.log(userLocalLevel[x].users.global_level)
-        console.log(userLocalLevel[x].users.global_exp)
+      let x = 0;
+      for (const member of guild.members.cache.values()) {
+        const { user } = member;
+
+        // Ensure userLocalLevel[x] exists before accessing
+        const userLevelData = userLocalLevel && userLocalLevel[x] ? userLocalLevel[x].users : {};
+
+        console.log(`Processing user: (${userLevelData.username}) in guild: ${guild.name}`);
+        console.log(userLevelData.global_level);
+        console.log(userLevelData.global_xp);
 
         await supabase
           .from('user_guild')
@@ -49,13 +53,16 @@ export default function (client) {
               user_id: user.id,
               username: user.username,
               servername: guild.name,
-              xp: userLocalLevel[x].users.global_xp || 0,
-              level: userLocalLevel[x].users.global_level || 0,
+              xp: userLevelData.global_xp || 0,
+              level: userLevelData.global_level || 0,
               guild_id: guildId
             }
           ]);
-        
-        if (user.bot) continue;
+
+        if (user.bot) {
+          x++;
+          continue;
+        }
 
         await supabase
           .from('users')
@@ -67,8 +74,7 @@ export default function (client) {
               avatar: user.avatar,
             }
           ]);
-
-        x++
+        x++;
       }
     }
 
