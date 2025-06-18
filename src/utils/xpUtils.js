@@ -22,19 +22,29 @@ export async function handleXPMessage(message) {
     .eq('id', userId)
     .single();
 
-  let newXP = xpToAdd, newLevel = 1;
+  let newXP, newLevel = 1;
   if (!error && userXP) {
+    newXP = userXP.global_xp + xpToAdd;
     newLevel = userXP.global_level;
-    // Lower growth rate so level 50 needs about 5k XP
-    // Solve for GROWTH_RATE: xpNeeded = BASE_EXP * ((GROWTH_RATE^50 - 1) / (GROWTH_RATE - 1)) ≈ 5000
-    // With BASE_EXP = 50, GROWTH_RATE ≈ 1.055
     const xpNeeded = BASE_EXP * ((Math.pow(GROWTH_RATE, newLevel) - 1) / (GROWTH_RATE - 1));
+
     if (newXP >= xpNeeded) {
       newLevel += 1;
-      message.reply(`Congrats ${message.author}, you leveled up to level ${newLevel}!`);
+      newXP = 0;
+
+      const updateChannel = message.guild.channels.cache.find(
+        ch => ch.name === '🚀・niveles' || ch.name === '🚀・niveles'
+      );
+      if (updateChannel) {
+        updateChannel.send(`Felicitaciones ${message.author}! Subiste al nivel **${newLevel}**! Sigue asi!`);
+      }
+      else{
+        console.warn(`Update channel not found for user ${userId}`);
+      }
     }
     await supabase.from('users').update({ global_xp: newXP, global_level: newLevel }).eq('id', userId);
   } else {
+    newXP = xpToAdd;
     await supabase.from('users').insert([{ id: userId, global_xp: newXP, global_level: newLevel }]);
   }
 }

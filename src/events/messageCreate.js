@@ -34,6 +34,17 @@ export default function (client) {
       return;
     }
 
+    if(message.content.startsWith('cb!say')){
+      const args = message.content.split(' ').slice(1);
+      const text = args.join(' ');
+      if (!text) {
+        message.reply('Por favor, proporciona un mensaje para decir.');
+        return;
+      }
+      message.channel.send(text);
+      return;
+    }
+
     if (message.author.bot) return;
   });
 }

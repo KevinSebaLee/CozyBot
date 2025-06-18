@@ -25,6 +25,8 @@ export default function (client) {
         ])
         .select();
 
+      console.log(`Guild ${guild.name} (${guildId}) upserted.`);
+
       if (error) {
         console.error(`Error upserting guild ${guildId}:`, error);
       }
@@ -50,10 +52,11 @@ export default function (client) {
               username: user.username,
               servername: guild.name,
               xp: userLevelData.global_xp || 0,
-              level: userLevelData.global_level || 0,
+              level: userLevelData.global_level || 1,
               guild_id: guildId
             }
           ]);
+
 
         if (user.bot) {
           x++;
