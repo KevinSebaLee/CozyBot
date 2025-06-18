@@ -1,9 +1,8 @@
-import messageXp from '../commands/xp.js';
 import { handleXPMessage } from '../utils/xpUtils.js';
 
 export default function (client) {
   client.on('messageCreate', async (message) => {
-    // handleXPMessage(message);
+    handleXPMessage(message);
 
     if (message.content.startsWith('!fate')) {
       const mention = message.mentions.users.first();

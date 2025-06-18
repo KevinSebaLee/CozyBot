@@ -29,10 +29,19 @@ export default function (client) {
         console.error(`Error upserting guild ${guildId}:`, error);
       }
 
+      const { data: userLocalLevel, error: err } = await supabase
+          .from('user_guild')
+          .select('users(global_xp, global_level)')
+          .eq('guild_id', guild.id)
+
       for (const [memberId, member] of guild.members.cache) {
         const { user } = member;
-        
-        // Upsert user_guild relationship
+        let x = 0;
+
+        console.log(`Processing user: ${user.username} (${user.id}) in guild: ${guild.name}`);
+        console.log(userLocalLevel[x].users.global_level)
+        console.log(userLocalLevel[x].users.global_exp)
+
         await supabase
           .from('user_guild')
           .upsert([
@@ -40,12 +49,12 @@ export default function (client) {
               user_id: user.id,
               username: user.username,
               servername: guild.name,
-              xp: user.global_xp,
-              level: user.global_level,
+              xp: userLocalLevel[x].users.global_xp || 0,
+              level: userLocalLevel[x].users.global_level || 0,
               guild_id: guildId
             }
           ]);
-
+        
         if (user.bot) continue;
 
         await supabase
@@ -58,6 +67,8 @@ export default function (client) {
               avatar: user.avatar,
             }
           ]);
+
+        x++
       }
     }
 
