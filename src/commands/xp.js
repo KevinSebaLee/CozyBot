@@ -52,6 +52,7 @@ const xpCommand = async (interaction) => {
     await interaction.reply({ files: [attachment] });
   } catch (err) {
     if (!interaction.replied && !interaction.deferred) {
+      console.log(err)
       await interaction.reply({ content: 'Could not generate XP widget image.', flags: 64 });
     } else if (typeof interaction.editReply === 'function') {
       await interaction.editReply({ content: 'Could not generate XP widget image.' });

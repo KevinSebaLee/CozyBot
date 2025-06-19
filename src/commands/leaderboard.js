@@ -42,19 +42,13 @@ const leaderboardCommand = async (interaction) => {
   // Fetch all guild members (forces API fetch, not just cache)
   const allMembers = await interaction.guild.members.fetch();
 
-  for( const [id, member] of allMembers) {
-    console.log(`Member: ${member.user.username} (${id})`);
-  }
-
   const selectedMember = allMembers.get('607672865218756621');
-  console.log('Selected member:', selectedMember ? `${selectedMember.user.tag} (${selectedMember.id})` : 'Not found');
 
   // Prepare user data for leaderboard image
   const users = [];
   for (const entry of leaderboard) {
     const u = entry.users;
     
-    console.log(`Processing user: ${u.username} (${u.id})`);
     // Fetch member from guild cache
     const userId = String(u.id); // Always use string for Discord IDs
     let member = null;
@@ -62,20 +56,13 @@ const leaderboardCommand = async (interaction) => {
 
     member = allMembers.get(userId) || allMembers.get(userId);
 
-    if (member && member.user) {
-      console.log(member.user);
-    } else {
-    }
-
-    if (member) {
-      console.log(`Member found: ${member.user.tag} (${member.id})`);
-    } else {
-      console.log(`Member not found in guild for ID: ${userId}`);
+    if (!member) {
       try {
         userObj = await interaction.client.users.fetch(userId);
         if (userObj) {
           console.log(`User found globally: ${userObj.tag} (${userObj.id})`);
         }
+
       } catch (err) {
         userObj = null;
       }
@@ -83,7 +70,6 @@ const leaderboardCommand = async (interaction) => {
 
     let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
     if (member && member.user) {
-      console.log(`Using member's avatar for ${member.user.id}`);
       avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 256 });
     } else if (userObj) {
       avatarUrl = userObj.displayAvatarURL({ extension: 'png', size: 256 });

@@ -1,4 +1,5 @@
 import supabase from '../database/supabaseClient.js';
+import { awardBadgeToUser } from './badgeUtils.js';
 import { AttachmentBuilder } from 'discord.js';
 import { createCanvas, loadImage } from 'canvas';
 
@@ -11,6 +12,37 @@ export async function handleXPMessage(message) {
   const userId = message.author.id;
   const now = Date.now();
   const lastXP = global.xpCooldowns.get(userId) || 0;
+
+  console.log(message.guild.id)
+
+  const { data: leaderboard, error: leaderboardError } = await supabase
+    .from('user_guild')
+    .select('users(id, global_xp, global_level, username)')
+    .eq('guild_id', message.guild.id)
+    .order('users(global_level)', { ascending: false })
+    .order('users(global_xp)', { ascending: false })
+    .limit(10);
+
+  if (leaderboardError) {
+    console.error('Error fetching leaderboard:', leaderboardError);
+    return;
+  }
+
+  console.log(leaderboard[0].users.id, userId, leaderboard.length);
+
+  if (leaderboard.length > 0 && leaderboard[0].users.id === userId) { // Modified user_id to id
+    console.log('User is at the top of the leaderboard');
+    await awardBadgeToUser(userId, 1);
+  } else {
+    console.log('User is not at the top of the leaderboard');
+  }
+
+  for( let i = 0; i < leaderboard.length; i++) {
+    if(leaderboard[i].users.id === userId) {
+      console.log(`User is at position ${i + 1} in the leaderboard`);
+      await awardBadgeToUser(userId, 2);
+    }
+  }
 
   if (now - lastXP < 60000) return;
   global.xpCooldowns.set(userId, now);
@@ -28,7 +60,6 @@ export async function handleXPMessage(message) {
     newLevel = userXP.global_level;
     const xpNeeded = BASE_EXP * ((Math.pow(GROWTH_RATE, newLevel) - 1) / (GROWTH_RATE - 1));
 
-    console.log(`User ${userId} has ${userXP.global_xp} XP, Level ${newLevel}, XP Needed for next level: ${xpNeeded}`);
     if (newXP >= xpNeeded) {
       newLevel += 1;
       newXP = 0;
@@ -50,7 +81,7 @@ export async function handleXPMessage(message) {
   }
 }
 
-export async function createXPWidget(user, userXP, posicion, options = {}) {
+export async function createXPWidget(user, userXP, posicion) {
   // Canvas dimensions
   const width = 600;
   const height = 250;
@@ -96,15 +127,15 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
 
   // Badge images (replace emojis with images)
   const badgeList = [
-    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385070387540262912/image.png?ex=6854bad1&is=68536951&hm=52e35673e2e6a00b18b99789d37a6a30e93ef4ae1056dc53fe9b9074e475b79c&=' },
-    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908440592476/c83de10755b77e26b349d625be30a086-removebg-preview.png?ex=6854b794&is=68536614&hm=deb8e88cf79733cdc70f7e654170a301a68e06bd7af28e451e45a77c5e4b7eb3&=' },
-    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066909074063360/008f737701344813b4ba847a676dd6a6-removebg-preview.png?ex=6854b794&is=68536614&hm=58edddd714e08b686123efa06632fc9cffef726073d1826e02688239d9834d8d&=' },
-    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908755169331/09e5774de3330575155c11989eb6b6e3-removebg-preview.png?ex=6854b794&is=68536614&hm=50ac6c2ce635f01024a92f4bbbf7eae2f9321915d2853c0087d9e61ab723b862&=' },
-    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385068940253724682/C9UgDin5uSwBAAAAABJRU5ErkJggg.png?ex=6854b978&is=685367f8&hm=f57437fefd3a84242708a3d0393638ed74136d763e89de691fa892721cc8c832&=' },
-    { url: ''},
-    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385073086717493341/Votre_texte_de_paragraphe-removebg-preview.png?ex=6854bd55&is=68536bd5&hm=24821509f9ce673d048368c19686ff143e16095a6925e35c9e3251660778d26d&=' },
-    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908147126395/telechargement_1.png?ex=6854b794&is=68536614&hm=834b95616e50b3b7f934df5010ef66a07f2e3d2bd4a161948f9a4ab1d525c718&=' },
-    { url: ''},
+    { id: 1, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385070387540262912/image.png?ex=6854bad1&is=68536951&hm=52e35673e2e6a00b18b99789d37a6a30e93ef4ae1056dc53fe9b9074e475b79c&=' },
+    { id: 2, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908440592476/c83de10755b77e26b349d625be30a086-removebg-preview.png?ex=6854b794&is=68536614&hm=deb8e88cf79733cdc70f7e654170a301a68e06bd7af28e451e45a77c5e4b7eb3&=' },
+    { id: 3, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066909074063360/008f737701344813b4ba847a676dd6a6-removebg-preview.png?ex=6854b794&is=68536614&hm=58edddd714e08b686123efa06632fc9cffef726073d1826e02688239d9834d8d&=' },
+    { id: 4, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908755169331/09e5774de3330575155c11989eb6b6e3-removebg-preview.png?ex=6854b794&is=68536614&hm=50ac6c2ce635f01024a92f4bbbf7eae2f9321915d2853c0087d9e61ab723b862&=' },
+    { id: 5, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385068940253724682/C9UgDin5uSwBAAAAABJRU5ErkJggg.png?ex=6854b978&is=685367f8&hm=f57437fefd3a84242708a3d0393638ed74136d763e89de691fa892721cc8c832&=' },
+    { id: 6, url: ''},
+    { id: 7, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385073086717493341/Votre_texte_de_paragraphe-removebg-preview.png?ex=6854bd55&is=68536bd5&hm=24821509f9ce673d048368c19686ff143e16095a6925e35c9e3251660778d26d&=' },
+    { id: 8, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908147126395/telechargement_1.png?ex=6854b794&is=68536614&hm=834b95616e50b3b7f934df5010ef66a07f2e3d2bd4a161948f9a4ab1d525c718&=' },
+    { id: 9, url: ''},
   ];
 
   // Create canvas
@@ -187,20 +218,35 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
   ctx.fillText(username, usernameX, usernameY);
 
   // Draw badge images next to username
-  let badgeDrawX = usernameX + ctx.measureText(username).width + 40;
+  let badgeDrawX = usernameX + ctx.measureText(username).width + 25;
   const badgeY = usernameY - 18; // vertically align with username
   const badgeSize = 24;
+
+  const {data: userBadges} = await supabase
+    .from('user_badge')
+    .select('id_badge')
+    .eq('id_user', user.id);
+
   for (const badge of badgeList) {
-    if (badge.url) {
-      try {
-        const badgeImg = await loadImage(badge.url);
-        ctx.drawImage(badgeImg, badgeDrawX, badgeY, badgeSize, badgeSize);
-        badgeDrawX += badgeSize + 8;
-      } catch {
-        // If image fails to load, skip
-        badgeDrawX += badgeSize + 8;
+    let x = 0;
+
+    if (userBadges && userBadges.length > 0) {
+      for (let x = 0; x < userBadges.length; x++) {
+        if (userBadges[x].id_badge) {
+          if (badge.url && userBadges[x].id_badge === badge.id) {
+            try {
+              const badgeImg = await loadImage(badge.url);
+              ctx.drawImage(badgeImg, badgeDrawX, badgeY, badgeSize, badgeSize);
+              badgeDrawX += badgeSize + 8;
+            } catch {
+              // If image fails to load, skip
+              badgeDrawX += badgeSize + 8;
+            }
+          }
+        }
       }
     }
+    x++;
   }
 
   // Grado (Rank) inside overlay - smaller font, keep "1" in same line
