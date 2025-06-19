@@ -14,7 +14,30 @@ export default function (client) {
     for (const [guildId, guild] of client.guilds.cache) {
       await guild.members.fetch();
 
-      const { data, error } = await supabase
+      // Get the top user by global_level in this guild
+      const { data: topUser } = await supabase
+        .from('user_guild')
+        .select('user_id')
+        .eq('guild_id', guild.id)
+        .order('level', { ascending: true })
+        .limit(1)
+        .single();
+
+      console.log(`Top user in guild ${guild.name} (${guildId}):`, topUser);
+
+      if (topUser && topUser.user_id) {
+        await supabase
+          .from('user_badge')
+          .upsert([
+          {
+            user_id: topUser.user_id,
+            badge_id: 2
+          }
+          ]);
+        console.log(`Badge 2 upserted for top user ${topUser.user_id} in guild ${guild.name}`);
+      }
+
+      const { error } = await supabase
         .from('guilds')
         .upsert([
           {
@@ -25,17 +48,14 @@ export default function (client) {
         ])
         .select();
 
-      console.log(`Guild ${guild.name} (${guildId}) upserted.`);
-
       if (error) {
         console.error(`Error upserting guild ${guildId}:`, error);
       }
 
-      const { data: userLocalLevel, error: err } = await supabase
-          .from('user_guild')
-          .select('users(global_xp, global_level, username)')
-          .eq('guild_id', guild.id)
-
+      const { data: userLocalLevel } = await supabase
+        .from('user_guild')
+        .select('users(global_xp, global_level, username)')
+        .eq('guild_id', guild.id);
 
       let x = 0;
       for (const member of guild.members.cache.values()) {
@@ -56,7 +76,6 @@ export default function (client) {
               guild_id: guildId
             }
           ]);
-
 
         if (user.bot) {
           x++;

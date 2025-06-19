@@ -57,7 +57,6 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
 
   // Layout constants
   const avatarSize = 100;
-  // Move avatar more to the right (was 30)
   const avatarX = 60;
   const avatarY = 60;
 
@@ -83,7 +82,6 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
   const xpTextColor = '#444';
   const levelTextColor = '#888';
   let rankColor = '#444'; // Default rank color
-  // Make rank color more visible (brighter gold)
   if(posicion === 1) {
     rankColor = '#FFD700'; // Gold color for rank
   }
@@ -96,19 +94,18 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
 
   const usernameColor = '#444';
 
-  // Emojis and their colors (if enabled)
-  const emojiList = [
-    { char: '⭐', color: '#FFD700' },
-    { char: '🔥', color: '#FF5733' },
-    { char: '❄️', color: '#00BFFF' },
-    { char: '👑', color: '#F1C40F' },
-    { char: '🌙', color: '#8e44ad' },
-    { char: '☀️', color: '#f9d923' }
+  // Badge images (replace emojis with images)
+  const badgeList = [
+    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385070387540262912/image.png?ex=6854bad1&is=68536951&hm=52e35673e2e6a00b18b99789d37a6a30e93ef4ae1056dc53fe9b9074e475b79c&=' },
+    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908440592476/c83de10755b77e26b349d625be30a086-removebg-preview.png?ex=6854b794&is=68536614&hm=deb8e88cf79733cdc70f7e654170a301a68e06bd7af28e451e45a77c5e4b7eb3&=' },
+    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066909074063360/008f737701344813b4ba847a676dd6a6-removebg-preview.png?ex=6854b794&is=68536614&hm=58edddd714e08b686123efa06632fc9cffef726073d1826e02688239d9834d8d&=' },
+    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908755169331/09e5774de3330575155c11989eb6b6e3-removebg-preview.png?ex=6854b794&is=68536614&hm=50ac6c2ce635f01024a92f4bbbf7eae2f9321915d2853c0087d9e61ab723b862&=' },
+    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385068940253724682/C9UgDin5uSwBAAAAABJRU5ErkJggg.png?ex=6854b978&is=685367f8&hm=f57437fefd3a84242708a3d0393638ed74136d763e89de691fa892721cc8c832&=' },
+    { url: ''},
+    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385073086717493341/Votre_texte_de_paragraphe-removebg-preview.png?ex=6854bd55&is=68536bd5&hm=24821509f9ce673d048368c19686ff143e16095a6925e35c9e3251660778d26d&=' },
+    { url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908147126395/telechargement_1.png?ex=6854b794&is=68536614&hm=834b95616e50b3b7f934df5010ef66a07f2e3d2bd4a161948f9a4ab1d525c718&=' },
+    { url: ''},
   ];
-  const emojis = emojiList.map(e => e.char).join(' ');
-
-  // Option to color emojis
-  const colorEmojis = options.colorEmojis === true;
 
   // Create canvas
   const canvas = createCanvas(width, height);
@@ -123,13 +120,11 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
       const canvasRatio = width / height;
       let drawWidth, drawHeight, offsetX, offsetY;
       if (imgRatio > canvasRatio) {
-        // Image is wider than canvas
         drawHeight = height;
         drawWidth = bg.width * (height / bg.height);
         offsetX = -(drawWidth - width) / 2;
         offsetY = 0;
       } else {
-        // Image is taller than canvas
         drawWidth = width;
         drawHeight = bg.height * (width / bg.width);
         offsetX = 0;
@@ -174,12 +169,12 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
   ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
   ctx.restore();
 
-  // Username + emojis (inside overlay, smaller font)
+  // Username (inside overlay, smaller font)
   ctx.font = 'bold 20px Arial';
   ctx.fillStyle = usernameColor;
   ctx.textAlign = 'left';
   let username = user.username;
-  const maxUsernameWidth = overlayWidth - avatarSize - 60; // fit inside overlay
+  const maxUsernameWidth = overlayWidth - avatarSize - 60;
   let usernameWidth = ctx.measureText(username).width;
   while (usernameWidth > maxUsernameWidth) {
     username = username.slice(0, -1);
@@ -187,45 +182,34 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
   }
   if (username !== user.username) username += '…';
 
-  // Move username and emojis slightly more to the right
   const usernameY = overlayY + 25;
-  // Move username to match avatar shift (was overlayX + avatarSize + 60)
   const usernameX = overlayX + avatarSize + 90;
   ctx.fillText(username, usernameX, usernameY);
 
-  // Draw emojis/badges next to username, also inside overlay, smaller font
-  ctx.font = '16px Arial';
-  const badgePadding = 40;
-  let emojiDrawX = usernameX + ctx.measureText(username).width + badgePadding;
-  if (emojiDrawX + ctx.measureText(emojis).width < overlayX + overlayWidth - 20) {
-    if (colorEmojis) {
-      // Draw each emoji with its color
-      let x = emojiDrawX;
-      for (const emoji of emojiList) {
-        ctx.save();
-        ctx.fillStyle = emoji.color;
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(emoji.char, x, usernameY);
-        x += ctx.measureText(emoji.char + ' ').width;
-        ctx.restore();
+  // Draw badge images next to username
+  let badgeDrawX = usernameX + ctx.measureText(username).width + 40;
+  const badgeY = usernameY - 18; // vertically align with username
+  const badgeSize = 24;
+  for (const badge of badgeList) {
+    if (badge.url) {
+      try {
+        const badgeImg = await loadImage(badge.url);
+        ctx.drawImage(badgeImg, badgeDrawX, badgeY, badgeSize, badgeSize);
+        badgeDrawX += badgeSize + 8;
+      } catch {
+        // If image fails to load, skip
+        badgeDrawX += badgeSize + 8;
       }
-    } else {
-      // Draw all emojis in default color
-      ctx.fillStyle = usernameColor;
-      ctx.fillText(emojis, emojiDrawX, usernameY);
     }
   }
 
   // Grado (Rank) inside overlay - smaller font, keep "1" in same line
-  // Make "1" more visible: bigger, bold, gold, with strong shadow and outline
   ctx.font = 'bold 22px Arial';
   ctx.textAlign = 'left';
   const gradoText = 'Grado : ';
   const gradoX = overlayX + 20;
   const gradoY = overlayY + 65;
 
-  // Draw "Grado : " with shadow
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,0.35)';
   ctx.shadowBlur = 6;
@@ -233,7 +217,6 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
   ctx.fillText(gradoText, gradoX, gradoY);
   ctx.restore();
 
-  // Draw the rank number "1" in gold, bigger, bold, with strong shadow and white outline
   ctx.save();
   ctx.font = 'bold 32px Arial';
   ctx.shadowColor = 'rgba(0,0,0,0.6)';
@@ -243,9 +226,7 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
   ctx.fillStyle = rankColor;
   const gradoTextWidth = ctx.measureText(gradoText).width;
   const rankValue = `${posicion || 1}`;
-  // Draw outline
   ctx.strokeText(rankValue, gradoX + gradoTextWidth + 2, gradoY + 2);
-  // Draw fill
   ctx.fillText(rankValue, gradoX + gradoTextWidth + 2, gradoY + 2);
   ctx.restore();
 
@@ -272,7 +253,6 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
 
   if (percent > 0) {
     ctx.save();
-    // Draw the rounded bar path and clip to it
     ctx.beginPath();
     ctx.moveTo(barX + barRadius, barY);
     ctx.lineTo(barX + barWidth - barRadius, barY);
@@ -286,7 +266,6 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
     ctx.closePath();
     ctx.clip();
 
-    // Draw the filled part as a rectangle (it will be clipped to the rounded bar)
     ctx.fillStyle = barFillColor;
     ctx.fillRect(barX, barY, barWidth * percent, barHeight);
     ctx.restore();
@@ -315,7 +294,7 @@ export async function createXPWidget(user, userXP, posicion, options = {}) {
   ctx.fillStyle = levelTextColor;
   ctx.textAlign = 'center';
   const nivelText = `Nivel : ${userXP.global_level}`;
-  ctx.fillText(nivelText, barX + barWidth / 2, barY - 2); // moved down from -12 to -2
+  ctx.fillText(nivelText, barX + barWidth / 2, barY - 2);
 
   // XP Text
   let xpText = `${userXP.global_xp} / ${xpNeeded} XP`;
