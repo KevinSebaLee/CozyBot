@@ -40,8 +40,17 @@ const xpCommand = async (interaction) => {
     return;
   }
 
+  const { data: posicion, error: err} = await supabase
+    .from('users')
+    .select('global_level')
+    .order('global_level', { ascending: false })
+
+  const posiscionEncontrada = posicion.findIndex(u => u.global_level === userXP.global_level) + 1;
+
+  console.log(posiscionEncontrada)
+
   try {
-    const attachment = await createXPWidget(user, userXP);
+    const attachment = await createXPWidget(user, userXP, posiscionEncontrada);
     await interaction.reply({ files: [attachment] });
   } catch (err) {
     if (!interaction.replied && !interaction.deferred) {

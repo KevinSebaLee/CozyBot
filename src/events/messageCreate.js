@@ -1,10 +1,11 @@
 import { handleXPMessage } from '../utils/xpUtils.js';
+import leaderboardCommand from '../commands/leaderboard.js';
 
 export default function (client) {
   client.on('messageCreate', async (message) => {
     handleXPMessage(message);
 
-    if (message.content.startsWith('!fate')) {
+    if (message.content.startsWith('cb!fate')) {
       const mention = message.mentions.users.first();
       if (!mention) {
         message.reply('Por favor, menciona a alguien para el fate.');
