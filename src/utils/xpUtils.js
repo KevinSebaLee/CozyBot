@@ -21,6 +21,82 @@ export async function handleXPMessage(message) {
   const now = Date.now();
   const lastXP = global.xpCooldowns.get(userId) || 0;
 
+  // 2% chance to trigger the XP event after a message
+  if (Math.random() < 0.001 && !message.author.bot) {
+    const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ComponentType } = await import('discord.js');
+
+    const embed = new EmbedBuilder()
+      .setTitle('¡Evento de XP Rápido!')
+      .setDescription('¡El primero en presionar el botón gana XP extra! 🚀')
+      .setColor(0x7b9fff);
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('xp_event_button')
+        .setLabel('¡Presióname!')
+        .setStyle(ButtonStyle.Primary)
+    );
+
+    const sentMsg = await message.channel.send({ embeds: [embed], components: [row] });
+
+    // Wait for the first user to press the button (15s timeout)
+    try {
+      const filter = (i) => i.customId === 'xp_event_button' && !i.user.bot;
+      const interaction = await sentMsg.awaitMessageComponent({ filter, componentType: ComponentType.Button, time: 15000 });
+
+      // Give XP to the winner
+      const winnerId = interaction.user.id;
+      const xpBonus = Math.floor(Math.random() * 10) + 10;
+
+      // Update XP in DB
+      const { data: winnerXP, error: winnerError } = await supabase
+        .from('users')
+        .select('global_xp, global_level')
+        .eq('id', winnerId)
+        .single();
+
+      let newXP = xpBonus, newLevel = 1;
+
+      if (!winnerError && winnerXP) {
+        newXP = winnerXP.global_xp + xpBonus;
+        newLevel = winnerXP.global_level;
+        const xpNeeded = BASE_EXP * ((Math.pow(GROWTH_RATE, newLevel) - 1) / (GROWTH_RATE - 1));
+        if (newXP >= xpNeeded) {
+          newLevel += 1;
+          newXP = 0;
+        }
+        await supabase.from('users').update({ global_xp: newXP, global_level: newLevel }).eq('id', winnerId);
+      } else {
+        await supabase.from('users').insert([{ id: winnerId, global_xp: newXP, global_level: newLevel }]);
+      }
+
+      // Announce the winner to everyone
+      await message.channel.send(`¡Felicidades ${interaction.user} ganó **${xpBonus} XP** por ser el más rápido!`);
+
+      // Disable the button for others
+      const disabledRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('xp_event_button')
+          .setLabel('¡Presióname!')
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(true)
+      );
+      await sentMsg.edit({ components: [disabledRow] });
+
+    } catch (e) {
+      // No one pressed the button in time
+      const disabledRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('xp_event_button')
+          .setLabel('¡Presióname!')
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(true)
+      );
+      await sentMsg.edit({ components: [disabledRow] });
+      await message.channel.send('¡Nadie fue lo suficientemente rápido esta vez!');
+    }
+  }
+
   const { data: leaderboard, error: leaderboardError } = await supabase
     .from('user_guild')
     .select('users(id, global_xp, global_level, username)')
