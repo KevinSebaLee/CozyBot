@@ -12,7 +12,16 @@ export default function (client) {
         return;
       }
 
-      const author = message.author;
+      let author;
+
+      const secondMention = message.mentions.users.at(1);
+      if (secondMention) {
+        author = secondMention;
+      } else {
+        author = message.author;
+      }
+
+
       if (mention.id === author.id) {
         message.reply('No puedes hacer fate contigo mismo.');
         return;
@@ -36,7 +45,7 @@ export default function (client) {
       ];
 
       const response = responses[Math.floor(Math.random() * responses.length)];
-      message.reply(`${author} y ${mention} ${response}`);
+      message.channel.send(`${author} y ${mention} ${response}`);
       return;
     }
 
