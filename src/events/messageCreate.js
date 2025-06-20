@@ -1,8 +1,8 @@
 import { handleXPMessage } from '../utils/xpUtils.js';
-import leaderboardCommand from '../commands/leaderboard.js';
 
 export default function (client) {
   client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
     handleXPMessage(message);
 
     if (message.content.startsWith('cb!fate')) {
@@ -24,10 +24,15 @@ export default function (client) {
         'son hermanos.',
         'son amantes.',
         'son casados.',
-        'son compañeros de trabajo.',
         'son desconocidos.',
         'son socios de trabajo.',
         'son maestro y esclavo',
+        'son crushes secretos.',
+        'son almas gemelas.',
+        'son mejores amigos.',
+        'son complices de crimen.',
+        'son egirl y simp.',
+        'son duo bot.',
       ];
 
       const response = responses[Math.floor(Math.random() * responses.length)];
@@ -35,17 +40,16 @@ export default function (client) {
       return;
     }
 
-    if(message.content.startsWith('cb!say')){
+    if (message.content.startsWith('cb!say')) {
       const args = message.content.split(' ').slice(1);
       const text = args.join(' ');
       if (!text) {
         message.reply('Por favor, proporciona un mensaje para decir.');
         return;
       }
-      message.channel.send(text);
+      await message.delete();
+      await message.channel.send(text);
       return;
     }
-
-    if (message.author.bot) return;
   });
 }

@@ -10,7 +10,7 @@ export default function (client) {
   client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}`);
 
-    // Loop through every guild the bot is in
+    // --- Your database sync logic remains unchanged ---
     for (const [guildId, guild] of client.guilds.cache) {
       await guild.members.fetch();
 
@@ -73,7 +73,7 @@ export default function (client) {
       }
     }
 
-    // Register all slash commands
+    // --- Register slash commands per guild for instant availability ---
     const commands = [
       xpCommand.data,
       resetCommand.data,
@@ -84,8 +84,12 @@ export default function (client) {
     ].filter(Boolean);
 
     for (const guild of client.guilds.cache.values()) {
-      await guild.commands.set([]);
-      await guild.commands.set(commands); 
+      try {
+        await guild.commands.set(commands);
+        console.log(`Registered slash commands for guild: ${guild.name} (${guild.id})`);
+      } catch (err) {
+        console.error(`Failed to register commands for guild ${guild.name} (${guild.id}):`, err);
+      }
     }
   });
 }
