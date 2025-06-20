@@ -5,26 +5,18 @@ export default function (client) {
     if (message.author.bot) return;
     handleXPMessage(message);
 
-    if (message.content.startsWith('cb!fate')) {
-      const mention = message.mentions.users.first();
+    const { content, mentions, author, channel } = message;
+
+    if (content.startsWith('cb!fate')) {
+      const [mention, secondMention] = mentions.users.values();
       if (!mention) {
-        message.reply('Por favor, menciona a alguien para el fate.');
-        return;
+        return message.reply('Por favor, menciona a alguien para el fate.');
       }
 
-      let author;
+      const fateAuthor = secondMention || author;
 
-      const secondMention = message.mentions.users.at(1);
-      if (secondMention) {
-        author = secondMention;
-      } else {
-        author = message.author;
-      }
-
-
-      if (mention.id === author.id) {
-        message.reply('No puedes hacer fate contigo mismo.');
-        return;
+      if (mention.id === fateAuthor.id) {
+        return message.reply('No puedes hacer fate contigo mismo.');
       }
 
       const responses = [
@@ -45,20 +37,16 @@ export default function (client) {
       ];
 
       const response = responses[Math.floor(Math.random() * responses.length)];
-      message.channel.send(`${author} y ${mention} ${response}`);
-      return;
+      return channel.send(`${fateAuthor} y ${mention} ${response}`);
     }
 
-    if (message.content.startsWith('cb!say')) {
-      const args = message.content.split(' ').slice(1);
-      const text = args.join(' ');
+    if (content.startsWith('cb!say')) {
+      const text = content.split(' ').slice(1).join(' ');
       if (!text) {
-        message.reply('Por favor, proporciona un mensaje para decir.');
-        return;
+        return message.reply('Por favor, proporciona un mensaje para decir.');
       }
       await message.delete();
-      await message.channel.send(text);
-      return;
+      return channel.send(text);
     }
   });
 }
