@@ -1,10 +1,18 @@
 import supabase from '../database/supabaseClient.js';
 import { awardBadgeToUser } from './badgeUtils.js';
 import { AttachmentBuilder } from 'discord.js';
-import { createCanvas, loadImage } from 'canvas';
+import { createCanvas, loadImage, Image } from 'canvas';
+import axios from 'axios';
 
 export const BASE_EXP = 50;
 export const GROWTH_RATE = 1.025;
+
+async function loadImageFromURL(url) {
+  const response = await axios.get(url, { responseType: 'arraybuffer' });
+  const img = new Image();
+  img.src = Buffer.from(response.data, 'binary');
+  return img;
+}
 
 export async function handleXPMessage(message) {
   if (!global.xpCooldowns) global.xpCooldowns = new Map();
@@ -31,19 +39,19 @@ export async function handleXPMessage(message) {
 
   if (message.reference && message.reference.messageId) {
     try {
-    const repliedMsg = await message.channel.messages.fetch(message.reference.messageId);
-    if (repliedMsg.author.id === '607672865218756621' && repliedMsg.author.id != userId) {
-      const userEntry = leaderboard.find(entry => entry.users.id === userId);
-      const username = userEntry ? userEntry.users.username : message.author.username;
-      await awardBadgeToUser(userId, 3, message.guild.id, username, message.guild.name);
-    }
+      const repliedMsg = await message.channel.messages.fetch(message.reference.messageId);
+      if (repliedMsg.author.id === '607672865218756621' && repliedMsg.author.id != userId) {
+        const userEntry = leaderboard.find(entry => entry.users.id === userId);
+        const username = userEntry ? userEntry.users.username : message.author.username;
+        await awardBadgeToUser(userId, 3, message.guild.id, username, message.guild.name);
+      }
     } catch (err) {
-    // Could not fetch the replied message (maybe deleted or inaccessible)
+      // Could not fetch the replied message (maybe deleted or inaccessible)
     }
   }
 
-  for( let i = 0; i < leaderboard.length; i++) {
-    if(leaderboard[i].users.id === userId && i < 10) {
+  for (let i = 0; i < leaderboard.length; i++) {
+    if (leaderboard[i].users.id === userId && i < 10) {
       await awardBadgeToUser(userId, 2, message.guild.id, leaderboard[i].users.username, message.guild.name);
     }
   }
@@ -74,7 +82,7 @@ export async function handleXPMessage(message) {
       if (updateChannel) {
         updateChannel.send(`Felicitaciones ${message.author}! Subiste al nivel **${newLevel}**! Sigue asi!`);
       }
-      else{
+      else {
         console.warn(`Update channel not found for user ${userId}`);
       }
     }
@@ -129,16 +137,16 @@ export async function createXPWidget(user, userXP, posicion, id_guild, deviceWid
   const usernameColor = '#444';
 
   // Badge images
+
   const badgeList = [
-    { id: 1, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066907861909545/f3ecfb45cf3578f3e85db3f78b7a63fc-removebg-preview.png?ex=68556054&is=68540ed4&hm=c8c0cdf525c445719b083391c17d6afdbc68dc32354a302731250c596bfca48f&=&width=625&height=625' },
-    { id: 2, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908440592476/c83de10755b77e26b349d625be30a086-removebg-preview.png?ex=68556054&is=68540ed4&hm=7832c7d40bd1b4e2f8d2f43ca30bcda061779a29839e6fba4058408391827325&=&width=625&height=625' },
-    { id: 3, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066909074063360/008f737701344813b4ba847a676dd6a6-removebg-preview.png?ex=68556054&is=68540ed4&hm=dee0768f040ebf38f3dd87ded30255ee7d6d42385f3d5fae3b38bd6f97e09856&=&width=633&height=616' },
-    { id: 4, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908755169331/09e5774de3330575155c11989eb6b6e3-removebg-preview.png?ex=68556054&is=68540ed4&hm=f5dafe7d32e22b7831768d1122fb9a4520a75d91f6bec3986f36c2a59b4a42b1&=&width=450&height=450' },
-    { id: 5, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385073086717493341/Votre_texte_de_paragraphe-removebg-preview.png?ex=68556615&is=68541495&hm=5475a09281783c37586dc52d917f4180b2c98d631215084862fb734ed480cab2&=&width=548&height=646' },
-    { id: 6, url: '' },
-    { id: 7, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385066908147126395/telechargement_1.png?ex=68556054&is=68540ed4&hm=37e16402f70da5c19e60d8fed2f3d6cee21cd6d636dd7d87a93dba9f3602811b&=&width=689&height=689' },
-    { id: 8, url: 'https://media.discordapp.net/attachments/1343637880832262144/1385068940253724682/C9UgDin5uSwBAAAAABJRU5ErkJggg.png?ex=68556238&is=685410b8&hm=3e059d6a13ec40843b190643e5d268eb3e0735951b0dd14dbc0681d8cbb47896&=&width=815&height=815' },
-    { id: 9, url: '' },
+    { id: 1, url: 'https://media.discordapp.net/attachments/1383898321046737010/1385686331811823666/f3ecfb45cf3578f3e85db3f78b7a63fc-removebg-preview.png?ex=6856f876&is=6855a6f6&hm=4d4c1d0eb56214e4e6793840f59aaa6fafd0eaad75eb0f06ca4dce9ac2397dae&=' },
+    { id: 2, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686332147372063/telechargement_1.png?ex=6856f876&is=6855a6f6&hm=5569ba362a72358f239c950a5d4ab9a6fbba9276e10272b8447b90ec18768bb5&' },
+    { id: 3, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686332474392586/008f737701344813b4ba847a676dd6a6-removebg-preview.png?ex=6856f876&is=6855a6f6&hm=0a538134ac70014b80c1cc9d2a0725b24d6de4102d9df072518c5d3e29c0aad5&' },
+    { id: 4, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686332784902174/09e5774de3330575155c11989eb6b6e3-removebg-preview.png?ex=6856f876&is=6855a6f6&hm=9a469ffa3d0bc5ba7d7afdf29fe241239280879aa714a81f0cbf1139e048dc3f&' },
+    { id: 5, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686333103542302/c83de10755b77e26b349d625be30a086-removebg-preview.png?ex=6856f876&is=6855a6f6&hm=b68205086022123f37de8769f4b740cb8cd02a130e8924667e489d1d908af26f&' },
+    { id: 6, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686333434888403/C9UgDin5uSwBAAAAABJRU5ErkJggg.png?ex=6856f876&is=6855a6f6&hm=12a7b802907764aaf45856de473def8f9191f1572a69d01d027fa10045706614&' },
+    { id: 7, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686333737009152/image.png?ex=6856f876&is=6855a6f6&hm=43f18ee5d707fbe3aa824cdc6f5bd466f511be6d9155d6e464f32a158ee5fb95&' },
+    { id: 8, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686334118694952/Votre_texte_de_paragraphe-removebg-preview.png?ex=6856f876&is=6855a6f6&hm=0e04b5f15c7d7369bb2110ea5b611d20d2e0ad54fd489ef748a83c8ad718254a&' }
   ];
 
   // Create canvas
@@ -255,17 +263,23 @@ export async function createXPWidget(user, userXP, posicion, id_guild, deviceWid
     if (userBadges && userBadges.length > 0) {
       for (let x = 0; x < userBadges.length; x++) {
         if (userBadges[x].id_badge && badge.url && userBadges[x].id_badge === badge.id) {
-          try {
-            const badgeImg = await loadImage(badge.url);
-            ctx.drawImage(badgeImg, badgeDrawX, badgeDrawY, badgeSize, badgeSize);
+          if (badge.url && typeof badge.url === 'string' && badge.url.trim() !== '') {
+            try {
+              const badgeImg = await loadImageFromURL(badge.url); // <- Use custom loader
+              ctx.drawImage(badgeImg, badgeDrawX, badgeDrawY, badgeSize, badgeSize);
+            } catch (err) {
+              console.error('Failed to load badge image:', badge.url, err);
+              ctx.save();
+              ctx.fillStyle = '#bbb';
+              ctx.fillRect(badgeDrawX, badgeDrawY, badgeSize, badgeSize);
+              ctx.restore();
+            }
             badgeDrawX += badgeSize + badgeSpacing;
             badgeCount++;
             if (isMobile && badgeCount % badgeWrapLimit === 0) {
               badgeDrawX = usernameX;
               badgeDrawY += badgeSize + Math.round(width * 0.01);
             }
-          } catch {
-            badgeDrawX += badgeSize + badgeSpacing;
           }
         }
       }

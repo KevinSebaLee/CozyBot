@@ -12,7 +12,7 @@ export async function awardBadgeToUser(userId, badgeId, guildId, username, guild
       console.error(`Failed to award badge ${badgeId} to user ${userId}:`, error);
     }
     else{
-      console.log(`Badge ${badgeId} awarded to user ${userId} in guild ${guildId}`);
+      // console.log(`Badge ${badgeId} awarded to user ${userId} in guild ${guildId}`);
     }
   }
 }

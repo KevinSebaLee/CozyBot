@@ -13,9 +13,16 @@ export default function (client) {
         return message.reply('Por favor, menciona a alguien para el fate.');
       }
 
-      const fateAuthor = secondMention || author;
+      let fateAuthor = author;
+      let fateMention = mention;
 
-      if (mention.id === fateAuthor.id) {
+      // If there is a second mention, swap roles
+      if (secondMention) {
+        fateAuthor = mention;
+        fateMention = secondMention;
+      }
+
+      if (fateMention.id === fateAuthor.id) {
         return message.reply('No puedes hacer fate contigo mismo.');
       }
 
@@ -34,10 +41,11 @@ export default function (client) {
         'son complices de crimen.',
         'son egirl y simp.',
         'son duo bot.',
+        'son prometidos por error'
       ];
 
       const response = responses[Math.floor(Math.random() * responses.length)];
-      return channel.send(`${fateAuthor} y ${mention} ${response}`);
+      return channel.send(`${fateAuthor} y ${fateMention} ${response}`);
     }
 
     if (content.startsWith('cb!say')) {
