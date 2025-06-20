@@ -85,7 +85,7 @@ export async function handleXPMessage(message) {
   }
 }
 
-export async function createXPWidget(user, userXP, posicion, deviceWidth = 600, deviceHeight = 250) {
+export async function createXPWidget(user, userXP, posicion, id_guild, deviceWidth = 600, deviceHeight = 250) {
   // Responsive: adjust for mobile (narrow) screens
   let width = deviceWidth;
   let height = deviceHeight;
@@ -196,12 +196,23 @@ export async function createXPWidget(user, userXP, posicion, deviceWidth = 600, 
   // Draw avatar (circle)
   const avatarURL = user.displayAvatarURL({ extension: 'png', size: 256 });
   const avatarImg = await loadImage(avatarURL);
+
+  // Draw avatar with circular clipping
   ctx.save();
   ctx.beginPath();
   ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2, true);
   ctx.closePath();
   ctx.clip();
   ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
+  ctx.restore();
+
+  // Draw thin black circle border around avatar to separate from the card
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 1, 0, Math.PI * 2, true);
+  ctx.lineWidth = 2; // Thin border
+  ctx.strokeStyle = '#000';
+  ctx.stroke();
   ctx.restore();
 
   // Username (inside overlay, proportional font)
@@ -235,8 +246,9 @@ export async function createXPWidget(user, userXP, posicion, deviceWidth = 600, 
 
   const { data: userBadges } = await supabase
     .from('user_badge')
-    .select('id_badge')
-    .eq('id_user', user.id);
+    .select('id_badge, id_guild')
+    .eq('id_user', user.id)
+    .eq('id_guild', id_guild);
 
   let badgeCount = 0;
   for (const badge of badgeList) {
@@ -265,7 +277,7 @@ export async function createXPWidget(user, userXP, posicion, deviceWidth = 600, 
   ctx.font = `bold ${gradoFontSize}px Arial`;
   ctx.textAlign = 'left';
   const gradoText = 'Grado : ';
-  const gradoX = overlayX + Math.round(width * 0.033);
+  const gradoX = overlayX + Math.round(width * 0.023);
   const gradoY = overlayY + Math.round(overlayHeight * (isMobile ? 0.30 : 0.65));
 
   ctx.save();
@@ -289,18 +301,24 @@ export async function createXPWidget(user, userXP, posicion, deviceWidth = 600, 
   ctx.fillText(rankValue, gradoX + gradoTextWidth + 2, gradoY + 2);
   ctx.restore();
 
+  // Make XP Bar larger and move it slightly down
+  const barExtraWidth = Math.round(width * 0.06); // Increase width by 6% of canvas width
+  const barNewWidth = barWidth + barExtraWidth;
+  const barNewX = barX - Math.round(barExtraWidth / 2);
+  const barNewY = barY + Math.round(height * 0.025); // Move down by 2.5% of canvas height
+
   // XP Bar background
   ctx.save();
   ctx.beginPath();
-  ctx.moveTo(barX + barRadius, barY);
-  ctx.lineTo(barX + barWidth - barRadius, barY);
-  ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + barRadius);
-  ctx.lineTo(barX + barWidth, barY + barHeight - barRadius);
-  ctx.quadraticCurveTo(barX + barWidth, barY + barHeight, barX + barWidth - barRadius, barY + barHeight);
-  ctx.lineTo(barX + barRadius, barY + barHeight);
-  ctx.quadraticCurveTo(barX, barY + barHeight, barX, barY + barHeight - barRadius);
-  ctx.lineTo(barX, barY + barRadius);
-  ctx.quadraticCurveTo(barX, barY, barX + barRadius, barY);
+  ctx.moveTo(barNewX + barRadius, barNewY);
+  ctx.lineTo(barNewX + barNewWidth - barRadius, barNewY);
+  ctx.quadraticCurveTo(barNewX + barNewWidth, barNewY, barNewX + barNewWidth, barNewY + barRadius);
+  ctx.lineTo(barNewX + barNewWidth, barNewY + barHeight - barRadius);
+  ctx.quadraticCurveTo(barNewX + barNewWidth, barNewY + barHeight, barNewX + barNewWidth - barRadius, barNewY + barHeight);
+  ctx.lineTo(barNewX + barRadius, barNewY + barHeight);
+  ctx.quadraticCurveTo(barNewX, barNewY + barHeight, barNewX, barNewY + barHeight - barRadius);
+  ctx.lineTo(barNewX, barNewY + barRadius);
+  ctx.quadraticCurveTo(barNewX, barNewY, barNewX + barRadius, barNewY);
   ctx.closePath();
   ctx.fillStyle = barBgColor;
   ctx.fill();
@@ -313,35 +331,35 @@ export async function createXPWidget(user, userXP, posicion, deviceWidth = 600, 
   if (percent > 0) {
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(barX + barRadius, barY);
-    ctx.lineTo(barX + barWidth - barRadius, barY);
-    ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + barRadius);
-    ctx.lineTo(barX + barWidth, barY + barHeight - barRadius);
-    ctx.quadraticCurveTo(barX + barWidth, barY + barHeight, barX + barWidth - barRadius, barY + barHeight);
-    ctx.lineTo(barX + barRadius, barY + barHeight);
-    ctx.quadraticCurveTo(barX, barY + barHeight, barX, barY + barHeight - barRadius);
-    ctx.lineTo(barX, barY + barRadius);
-    ctx.quadraticCurveTo(barX, barY, barX + barRadius, barY);
+    ctx.moveTo(barNewX + barRadius, barNewY);
+    ctx.lineTo(barNewX + barNewWidth - barRadius, barNewY);
+    ctx.quadraticCurveTo(barNewX + barNewWidth, barNewY, barNewX + barNewWidth, barNewY + barRadius);
+    ctx.lineTo(barNewX + barNewWidth, barNewY + barHeight - barRadius);
+    ctx.quadraticCurveTo(barNewX + barNewWidth, barNewY + barHeight, barNewX + barNewWidth - barRadius, barNewY + barHeight);
+    ctx.lineTo(barNewX + barRadius, barNewY + barHeight);
+    ctx.quadraticCurveTo(barNewX, barNewY + barHeight, barNewX, barNewY + barHeight - barRadius);
+    ctx.lineTo(barNewX, barNewY + barRadius);
+    ctx.quadraticCurveTo(barNewX, barNewY, barNewX + barRadius, barNewY);
     ctx.closePath();
     ctx.clip();
 
     ctx.fillStyle = barFillColor;
-    ctx.fillRect(barX, barY, barWidth * percent, barHeight);
+    ctx.fillRect(barNewX, barNewY, barNewWidth * percent, barHeight);
     ctx.restore();
   }
 
   // XP Bar border
   ctx.save();
   ctx.beginPath();
-  ctx.moveTo(barX + barRadius, barY);
-  ctx.lineTo(barX + barWidth - barRadius, barY);
-  ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + barRadius);
-  ctx.lineTo(barX + barWidth, barY + barHeight - barRadius);
-  ctx.quadraticCurveTo(barX + barWidth, barY + barHeight, barX + barWidth - barRadius, barY + barHeight);
-  ctx.lineTo(barX + barRadius, barY + barHeight);
-  ctx.quadraticCurveTo(barX, barY + barHeight, barX, barY + barHeight - barRadius);
-  ctx.lineTo(barX, barY + barRadius);
-  ctx.quadraticCurveTo(barX, barY, barX + barRadius, barY);
+  ctx.moveTo(barNewX + barRadius, barNewY);
+  ctx.lineTo(barNewX + barNewWidth - barRadius, barNewY);
+  ctx.quadraticCurveTo(barNewX + barNewWidth, barNewY, barNewX + barNewWidth, barNewY + barRadius);
+  ctx.lineTo(barNewX + barNewWidth, barNewY + barHeight - barRadius);
+  ctx.quadraticCurveTo(barNewX + barNewWidth, barNewY + barHeight, barNewX + barNewWidth - barRadius, barNewY + barHeight);
+  ctx.lineTo(barNewX + barRadius, barNewY + barHeight);
+  ctx.quadraticCurveTo(barNewX, barNewY + barHeight, barNewX, barNewY + barHeight - barRadius);
+  ctx.lineTo(barNewX, barNewY + barRadius);
+  ctx.quadraticCurveTo(barNewX, barNewY, barNewX + barRadius, barNewY);
   ctx.closePath();
   ctx.lineWidth = Math.max(2, Math.round(width * 0.005));
   ctx.strokeStyle = '#fff';
@@ -355,7 +373,7 @@ export async function createXPWidget(user, userXP, posicion, deviceWidth = 600, 
   const nivelText = `Nivel : ${userXP.global_level}`;
   ctx.fillText(nivelText, barX + barWidth / 2, barY - Math.round(barHeight * 0.07));
 
-  // XP Text
+  // XP Text (centered vertically and horizontally in the XP bar)
   let xpText = `${userXP.global_xp} / ${xpNeeded} XP`;
   let xpFontSize = isMobile ? Math.round(width * 0.04) : Math.round(width * 0.023);
   ctx.font = `bold ${xpFontSize}px Arial`;
@@ -368,10 +386,11 @@ export async function createXPWidget(user, userXP, posicion, deviceWidth = 600, 
   }
   ctx.fillStyle = xpTextColor;
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   ctx.fillText(
     xpText,
-    barX + barWidth / 2,
-    barY + barHeight - Math.round(barHeight * 0.25)
+    barNewX + barNewWidth / 2,
+    barNewY + barHeight / 2
   );
 
   // Return as Discord attachment
