@@ -46,7 +46,7 @@ export async function handleXPMessage(message) {
 
       // Give XP to the winner
       const winnerId = interaction.user.id;
-      const xpBonus = Math.floor(Math.random() * 10) + 10;
+      const xpBonus = Math.floor(Math.random() * 101) + 500;
 
       // Update XP in DB
       const { data: winnerXP, error: winnerError } = await supabase

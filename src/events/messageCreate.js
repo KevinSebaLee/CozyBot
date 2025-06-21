@@ -1,6 +1,6 @@
 import { handleXPMessage } from '../utils/xpUtils.js';
 import { createUsersCanva } from '../utils/shipUtils.js';
-import { shipCommand } from '../commands/ship.js';
+import { joinImagesSideBySide } from '../utils/matchUtils.js';
 
 export default function (client) {
   client.on('messageCreate', async (message) => {
@@ -81,15 +81,15 @@ export default function (client) {
           const username = filteredArgs[i].trim().toLowerCase();
           // Try exact match first
           let found = message.guild.members.cache.find(
-        m => m.user.username.toLowerCase() === username
+            m => m.user.username.toLowerCase() === username
           );
           if (!found) {
-        found = message.guild.members.cache.find(
-          m => m.user.username.toLowerCase().includes(username)
-        );
+            found = message.guild.members.cache.find(
+              m => m.user.username.toLowerCase().includes(username)
+            );
           }
           if (found && !users.some(u => u.id === found.user.id)) {
-        users.push(found.user);
+            users.push(found.user);
           }
         }
       }
@@ -147,6 +147,60 @@ export default function (client) {
       } catch (err) {
         console.error("Error enviando el ship:", err);
         return message.reply("No se pudo enviar el ship. Inténtalo de nuevo más tarde.");
+      }
+    }
+
+    if (content.startsWith('cb!match')) {
+      // Get mentioned users and/or text usernames
+      const args = content.split(' ').slice(1);
+      let users = Array.from(message.mentions.users.values());
+
+      if (users.length < 2 && args.length >= 2) {
+      // Remove mention syntax from args
+      const filteredArgs = args.filter(arg => !arg.startsWith('<@'));
+      // Try to find users by username (case-insensitive, fuzzy match)
+      for (let i = 0; i < filteredArgs.length && users.length < 2; i++) {
+        const username = filteredArgs[i].trim().toLowerCase();
+        // Try exact match first
+        let found = message.guild.members.cache.find(
+        m => m.user.username.toLowerCase() === username
+        );
+        if (!found) {
+        found = message.guild.members.cache.find(
+          m => m.user.username.toLowerCase().includes(username)
+        );
+        }
+        if (found && !users.some(u => u.id === found.user.id)) {
+        users.push(found.user);
+        }
+      }
+      }
+
+      if (users.length < 2) {
+      return message.reply('Por favor, menciona a dos usuarios o escribe sus nombres para hacer un match.');
+      }
+      const userA = users[0];
+      const userB = users[1];
+
+      // Get avatar URLs
+      const avatarA = userA.displayAvatarURL({ extension: "png", size: 256 });
+      const avatarB = userB.displayAvatarURL({ extension: "png", size: 256 });
+
+      try {
+      const matchImageBuffer = await joinImagesSideBySide(avatarA, avatarB);
+
+      const { EmbedBuilder, AttachmentBuilder } = await import('discord.js');
+      const embed = new EmbedBuilder()
+        .setColor("#00bfff")
+        .setTitle("¡Hermoso match!")
+        .setImage("attachment://match.png");
+
+      const attachment = new AttachmentBuilder(matchImageBuffer, { name: "match.png" });
+
+      await message.channel.send({ content: `${userA} 🤝 ${userB}`, embeds: [embed], files: [attachment] });
+      } catch (err) {
+      console.error("Error enviando el match:", err);
+      return message.reply("No se pudo crear el match. Inténtalo de nuevo más tarde.");
       }
     }
   });
