@@ -10,9 +10,36 @@ export default function (client) {
     const { content, mentions, author, channel } = message;
 
     if (content.startsWith('cb!fate')) {
-      const [mention, secondMention] = mentions.users.values();
+      // Get mentioned users and/or text usernames
+      const args = content.split(' ').slice(1);
+      let users = Array.from(message.mentions.users.values());
+
+      // Try to find users by username if not enough mentions
+      if (users.length < 2 && args.length >= 1) {
+        // Remove mention syntax from args
+        const filteredArgs = args.filter(arg => !arg.startsWith('<@'));
+        // Try to find users by username (case-insensitive, fuzzy match)
+        for (let i = 0; i < filteredArgs.length && users.length < 2; i++) {
+          const username = filteredArgs[i].trim().toLowerCase();
+          let found = message.guild.members.cache.find(
+            m => m.user.username.toLowerCase() === username
+          );
+          if (!found) {
+            found = message.guild.members.cache.find(
+              m => m.user.username.toLowerCase().includes(username)
+            );
+          }
+          if (found && !users.some(u => u.id === found.user.id)) {
+            users.push(found.user);
+          }
+        }
+      }
+
+      const mention = users[0];
+      const secondMention = users[1];
+
       if (!mention) {
-        return message.reply('Por favor, menciona a alguien para el fate.');
+        return message.reply('Por favor, menciona a alguien o escribe su nombre para el fate.');
       }
 
       let fateAuthor = author;
@@ -156,28 +183,28 @@ export default function (client) {
       let users = Array.from(message.mentions.users.values());
 
       if (users.length < 2 && args.length >= 2) {
-      // Remove mention syntax from args
-      const filteredArgs = args.filter(arg => !arg.startsWith('<@'));
-      // Try to find users by username (case-insensitive, fuzzy match)
-      for (let i = 0; i < filteredArgs.length && users.length < 2; i++) {
-        const username = filteredArgs[i].trim().toLowerCase();
-        // Try exact match first
-        let found = message.guild.members.cache.find(
-        m => m.user.username.toLowerCase() === username
-        );
-        if (!found) {
-        found = message.guild.members.cache.find(
-          m => m.user.username.toLowerCase().includes(username)
-        );
+        // Remove mention syntax from args
+        const filteredArgs = args.filter(arg => !arg.startsWith('<@'));
+        // Try to find users by username (case-insensitive, fuzzy match)
+        for (let i = 0; i < filteredArgs.length && users.length < 2; i++) {
+          const username = filteredArgs[i].trim().toLowerCase();
+          // Try exact match first
+          let found = message.guild.members.cache.find(
+            m => m.user.username.toLowerCase() === username
+          );
+          if (!found) {
+            found = message.guild.members.cache.find(
+              m => m.user.username.toLowerCase().includes(username)
+            );
+          }
+          if (found && !users.some(u => u.id === found.user.id)) {
+            users.push(found.user);
+          }
         }
-        if (found && !users.some(u => u.id === found.user.id)) {
-        users.push(found.user);
-        }
-      }
       }
 
       if (users.length < 2) {
-      return message.reply('Por favor, menciona a dos usuarios o escribe sus nombres para hacer un match.');
+        return message.reply('Por favor, menciona a dos usuarios o escribe sus nombres para hacer un match.');
       }
       const userA = users[0];
       const userB = users[1];
@@ -187,20 +214,20 @@ export default function (client) {
       const avatarB = userB.displayAvatarURL({ extension: "png", size: 256 });
 
       try {
-      const matchImageBuffer = await joinImagesSideBySide(avatarA, avatarB);
+        const matchImageBuffer = await joinImagesSideBySide(avatarA, avatarB);
 
-      const { EmbedBuilder, AttachmentBuilder } = await import('discord.js');
-      const embed = new EmbedBuilder()
-        .setColor("#00bfff")
-        .setTitle("¡Hermoso match!")
-        .setImage("attachment://match.png");
+        const { EmbedBuilder, AttachmentBuilder } = await import('discord.js');
+        const embed = new EmbedBuilder()
+          .setColor("#00bfff")
+          .setTitle("¡Hermoso match!")
+          .setImage("attachment://match.png");
 
-      const attachment = new AttachmentBuilder(matchImageBuffer, { name: "match.png" });
+        const attachment = new AttachmentBuilder(matchImageBuffer, { name: "match.png" });
 
-      await message.channel.send({ content: `${userA} 🤝 ${userB}`, embeds: [embed], files: [attachment] });
+        await message.channel.send({ embeds: [embed], files: [attachment] });
       } catch (err) {
-      console.error("Error enviando el match:", err);
-      return message.reply("No se pudo crear el match. Inténtalo de nuevo más tarde.");
+        console.error("Error enviando el match:", err);
+        return message.reply("No se pudo crear el match. Inténtalo de nuevo más tarde.");
       }
     }
   });

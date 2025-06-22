@@ -21,7 +21,7 @@ export async function handleXPMessage(message) {
   const now = Date.now();
   const lastXP = global.xpCooldowns.get(userId) || 0;
 
-  // 2% chance to trigger the XP event after a message
+  // 0.1% chance to trigger the XP event after a message
   if (Math.random() < 0.001 && !message.author.bot) {
     const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ComponentType } = await import('discord.js');
 
