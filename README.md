@@ -77,7 +77,7 @@ Issues and pull requests are welcome! Please use the [issue tracker](https://git
 
 ## License
 
-ISC © La Cozy Gang
+ISC © Cozy Haven
 
 ---
 *This README was generated with the available project files and may need updates for new features or structural changes.*
