@@ -1,6 +1,7 @@
 import { AttachmentBuilder } from 'discord.js';
 import { createCanvas, loadImage, Image } from 'canvas';
 import axios from 'axios';
+import path from 'path';
 import supabase from '../../database/supabaseClient.js';
 import { BASE_EXP, GROWTH_RATE } from './xpMath.js';
 
@@ -57,20 +58,23 @@ export async function createXPWidget(user, userXP, posicion, id_guild, deviceWid
   // Badge images
 
   const badgeList = [
-    { id: 1, url: 'https://media.discordapp.net/attachments/1383898321046737010/1385686331811823666/f3ecfb45cf3578f3e85db3f78b7a63fc-removebg-preview.png?ex=685849f6&is=6856f876&hm=6f214fe71f1b243de150f7c4b9aac8413f4982ea5bd22be468d6d84c604a0331&=&width=625&height=625' },
-    { id: 2, url: 'https://media.discordapp.net/attachments/1383898321046737010/1385686333103542302/c83de10755b77e26b349d625be30a086-removebg-preview.png?ex=685849f6&is=6856f876&hm=a2bf4e85f28f1a9dadbb25c1f29d2b03669ad7a0274e082eb6bb4abd7d9ef7c7&=&width=625&height=625' },
-    { id: 3, url: 'https://media.discordapp.net/attachments/1383898321046737010/1385686332474392586/008f737701344813b4ba847a676dd6a6-removebg-preview.png?ex=685849f6&is=6856f876&hm=a04dfec7794f0650cd8d7723c9d639888c533a84396172b5a9711d8e13b83162&=&width=633&height=616' },
-    { id: 4, url: 'https://media.discordapp.net/attachments/1383898321046737010/1385686332784902174/09e5774de3330575155c11989eb6b6e3-removebg-preview.png?ex=685849f6&is=6856f876&hm=304c65c77e21280e3618250f5669189a0e5343c5ce0fa8f993c18d963d32d0cd&=&width=450&height=450' },
-    { id: 5, url: 'https://media.discordapp.net/attachments/1383898321046737010/1385686334118694952/Votre_texte_de_paragraphe-removebg-preview.png?ex=685849f6&is=6856f876&hm=b1c9550f7e938537ac91740b1eaca1799b63b6a04f1f0c7e497ed96a129efcc1&=&width=548&height=646' },
-    { id: 6, url: 'https://media.discordapp.net/attachments/1383898321046737010/1385686333434888403/C9UgDin5uSwBAAAAABJRU5ErkJggg.png?ex=685849f6&is=6856f876&hm=4b6bd6b3e45b7f820e1b3c0801940806dff5f9a0e05a5947c1ff43fcf652f891&=&width=815&height=815' },
-    { id: 7, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686332147372063/telechargement_1.png?ex=685849f6&is=6856f876&hm=0bc0ea08eee7010a29a2ac5a7ba66dfd814097ae36441f3640e07d5bac0837a1&' },
-    { id: 8, url: 'https://cdn.discordapp.com/attachments/1383898321046737010/1385686334118694952/Votre_texte_de_paragraphe-removebg-preview.png?ex=685849f6&is=6856f876&hm=0e04b5f15c7d7369bb2110ea5b611d20d2e0ad54fd489ef748a83c8ad718254a&=&width=256&height=256' }
+    { id: 1, file: path.resolve('src/assets/badges/top1.png') },
+    { id: 2, file: path.resolve('src/assets/badges/top10.png') },
+    { id: 3, file: path.resolve('src/assets/badges/hablarFrost.png') },
+    { id: 4, file: path.resolve('src/assets/badges/fantasma.png') },
+    { id: 5, file: path.resolve('src/assets/badges/fantasmaX.png') },
+    { id: 6, file: path.resolve('src/assets/badges/6.png') },
+    { id: 7, file: path.resolve('src/assets/badges/activoNoche.png') },
+    { id: 8, file: path.resolve('src/assets/badges/activoDia.png') },
+    { id: 9, file: path.resolve('src/assets/badges/activo.png') },
   ];
+
+  console.log(badgeList[0].file);
 
   // Create canvas
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
-  const image = 'https://media.discordapp.net/attachments/1384218094628507769/1385052269803737118/3daac57c1a68599a1c7b300038fb446e.png?ex=6855fb72&is=6854a9f2&hm=01e04c24e95b343fea3c53f89ca71a3f98e0ebf3635d2404ec1ec74fd008484b&=';
+  const image = '';
 
   // Draw background image (optional, use a default if not provided)
   if (image) {
@@ -168,7 +172,7 @@ export async function createXPWidget(user, userXP, posicion, id_guild, deviceWid
   let badgeDrawY = usernameY - Math.round(usernameFontSize * 0.9);
   const badgeSize = isMobile ? Math.round(width * 0.08) : Math.round(width * 0.04);
   const badgeSpacing = Math.round(width * 0.013);
-  const badgeWrapLimit = isMobile ? 3 : 99; // wrap after 3 badges on mobile
+  const badgeWrapLimit = isMobile ? 3 : 99;
 
   const { data: userBadges } = await supabase
     .from('user_badge')
@@ -180,24 +184,22 @@ export async function createXPWidget(user, userXP, posicion, id_guild, deviceWid
   for (const badge of badgeList) {
     if (userBadges && userBadges.length > 0) {
       for (let x = 0; x < userBadges.length; x++) {
-        if (userBadges[x].id_badge && badge.url && userBadges[x].id_badge === badge.id) {
-          if (badge.url && typeof badge.url === 'string' && badge.url.trim() !== '') {
-            try {
-              const badgeImg = await loadImageFromURL(badge.url); // <- Use custom loader
-              ctx.drawImage(badgeImg, badgeDrawX, badgeDrawY, badgeSize, badgeSize);
-            } catch (err) {
-              console.error('Failed to load badge image:', badge.url, err);
-              ctx.save();
-              ctx.fillStyle = '#bbb';
-              ctx.fillRect(badgeDrawX, badgeDrawY, badgeSize, badgeSize);
-              ctx.restore();
-            }
-            badgeDrawX += badgeSize + badgeSpacing;
-            badgeCount++;
-            if (isMobile && badgeCount % badgeWrapLimit === 0) {
-              badgeDrawX = usernameX;
-              badgeDrawY += badgeSize + Math.round(width * 0.01);
-            }
+        if (userBadges[x].id_badge && badge.file && userBadges[x].id_badge === badge.id) {
+          try {
+            const badgeImg = await loadImage(badge.file);
+            ctx.drawImage(badgeImg, badgeDrawX, badgeDrawY, badgeSize, badgeSize);
+          } catch (err) {
+            console.error('Failed to load badge image:', badge.file, err);
+            ctx.save();
+            ctx.fillStyle = '#bbb';
+            ctx.fillRect(badgeDrawX, badgeDrawY, badgeSize, badgeSize);
+            ctx.restore();
+          }
+          badgeDrawX += badgeSize + badgeSpacing;
+          badgeCount++;
+          if (isMobile && badgeCount % badgeWrapLimit === 0) {
+            badgeDrawX = usernameX;
+            badgeDrawY += badgeSize + Math.round(width * 0.01);
           }
         }
       }
