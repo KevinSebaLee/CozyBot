@@ -1,4 +1,4 @@
-import { handleXPMessage } from '../utils/xpUtils.js';
+import { handleXPMessage } from '../utils/xp/xpHandleMessage.js';
 import { createUsersCanva } from '../utils/shipUtils.js';
 import { joinImagesSideBySide } from '../utils/matchUtils.js';
 

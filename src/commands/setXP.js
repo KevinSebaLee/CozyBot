@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "discord.js";
-import supabase from "../database/supabaseClient.js";
+import { setUserXPLevel } from "../services/xpService.js";
 
 const data = new SlashCommandBuilder()
   .setName("setxp")
@@ -16,79 +16,53 @@ const data = new SlashCommandBuilder()
   )
   .addIntegerOption(option =>
     option.setName("xp")
-        .setDescription("El XP a establecer")
-        .setRequired(false)
-    );
+      .setDescription("El XP a establecer")
+      .setRequired(false)
+  );
 
 const setXpCommand = async (interaction) => {
-    console.log(`setXpCommand called by user: ${interaction.options.getUser("user")} (${interaction.user.id})`);
-
-    // Always try to defer reply first
-    if (!interaction.deferred && !interaction.replied) {
-        try {
-            await interaction.deferReply({ ephemeral: true });
-        } catch (err) {
-            console.error("Error deferring reply:", err);
-            // If defer fails and not replied, try to reply
-            if (!interaction.replied) {
-                try {
-                    await interaction.reply({
-                        content: "No se pudo establecer el XP. Inténtalo de nuevo.",
-                        ephemeral: true,
-                    });
-                } catch (replyErr) {
-                    console.error("Error sending reply after defer failed:", replyErr);
-                }
-            }
-            return;
-        }
-    }
-
+  if (!interaction.deferred && !interaction.replied) {
     try {
-        const user = interaction.options.getUser("user");
-        const xp = interaction.options.getInteger("xp");
-        const level = interaction.options.getInteger("level");
-
-        if (!user || level === null) {
-            await interaction.editReply({
-                content: "Debes proporcionar un usuario y un XP válido.",
-            });
-            return;
-        }
-
-        const { error } = await supabase
-            .from("users")
-            .update({
-                global_xp: xp || 0,
-                global_level: level,
-            })
-            .eq("id", user.id);
-
-        if (error) {
-            throw error;
-        }
-
-        await interaction.editReply({
-            content: `XP de ${user.tag} establecido a ${xp} y nivel a ${level || 1}.`,
+      await interaction.deferReply({ ephemeral: true });
+    } catch (err) {
+      if (!interaction.replied) {
+        await interaction.reply({
+          content: "No se pudo establecer el XP. Inténtalo de nuevo.",
+          ephemeral: true,
         });
-    } catch (error) {
-        console.error("Error setting XP:", error);
-        // Always try to respond, even on error
-        if (interaction.deferred || interaction.replied) {
-            await interaction.editReply({
-                content: "Ocurrió un error al establecer el XP.",
-            });
-        } else {
-            try {
-                await interaction.reply({
-                    content: "Ocurrió un error al establecer el XP.",
-                    ephemeral: true,
-                });
-            } catch (replyErr) {
-                console.error("Error sending reply after error:", replyErr);
-            }
-        }
+      }
+      return;
     }
+  }
+
+  try {
+    const user = interaction.options.getUser("user");
+    const xp = interaction.options.getInteger("xp");
+    const level = interaction.options.getInteger("level");
+    if (!user || level === null) {
+      await interaction.editReply({
+        content: "Debes proporcionar un usuario y un XP válido.",
+      });
+      return;
+    }
+
+    const success = await setUserXPLevel(user.id, xp || 0, level);
+    if (!success) throw new Error("DB error");
+    await interaction.editReply({
+      content: `XP de ${user.tag} establecido a ${xp} y nivel a ${level || 1}.`,
+    });
+  } catch (error) {
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply({
+        content: "Ocurrió un error al establecer el XP.",
+      });
+    } else {
+      await interaction.reply({
+        content: "Ocurrió un error al establecer el XP.",
+        ephemeral: true,
+      });
+    }
+  }
 };
 
 setXpCommand.data = data;
